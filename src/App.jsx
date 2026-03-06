@@ -211,9 +211,9 @@ function App() {
 
         // Determine pathis needed
         // Normal: 3 slots, Baal adds fourth.
-        // VCD: always treat as 3 slots (A is N/A, B,C,D).
+        // VCD: 3 slots if Baal (A is N/A, B,C,D), 2 slots if not Baal (A is N/A, B,C, D=N/A).
         let neededCount = isBaalSatsang ? 4 : 3;
-        if (isVCD) neededCount = 3;
+        if (isVCD) neededCount = isBaalSatsang ? 3 : 2;
 
         // Get auto assignments
         let autoAssigned = getAutoPathis(date, neededCount, schedule, pathiList);
@@ -226,7 +226,7 @@ function App() {
             slots.push("N/A");
             slots.push(autoAssigned.a); // B
             slots.push(autoAssigned.b); // C
-            slots.push(autoAssigned.c); // D (always assigned)
+            slots.push(isBaalSatsang ? autoAssigned.c : "N/A"); // D only if Baal Satsang
 
             pathis = { a: slots[0], b: slots[1], c: slots[2], d: slots[3] };
         } else {
@@ -289,74 +289,6 @@ function App() {
         }, 100);
     };
 
-    const handleBulkUpload = (bulkEntry) => {
-        const tempSchedule = [...schedule];
-        const entry = bulkEntry;
-        
-        const placeId = entry.placeId;
-        const date = entry.date;
-        const sk = entry.sk;
-
-        const placeObj = places.find(p => p.id === placeId);
-        if (!placeObj) return false;
-
-        const isVCD = sk === 'VCD';
-        const isBaalSatsang = placeObj.baalSatsang;
-
-        let existingIndex = tempSchedule.findIndex(e => e.placeId === placeId && e.date === date);
-        if (existingIndex > -1) {
-            // Skip overwrite for bulk
-            return false;
-        }
-
-        if (sk !== 'VCD') {
-            const skConflict = tempSchedule.find(s => s.date === date && s.sk === sk && s.placeId !== placeId);
-            if (skConflict) return false;
-        }
-
-        // bulk entry: normal 3 slots / baal 4 slots; VCD always 3 slots
-        let neededCount = isBaalSatsang ? 4 : 3;
-        if (isVCD) neededCount = 3;
-
-        let autoAssigned = getAutoPathis(date, neededCount, tempSchedule, pathiList);
-
-        let pathis;
-        if (isVCD) {
-            let slots = [];
-            slots.push("N/A");
-            slots.push(autoAssigned.a);
-            slots.push(autoAssigned.b);
-            slots.push(autoAssigned.c); // always D
-            pathis = { a: slots[0], b: slots[1], c: slots[2], d: slots[3] };
-        } else {
-            if (isBaalSatsang) {
-                pathis = { a: autoAssigned.a, b: autoAssigned.b, c: autoAssigned.c, d: autoAssigned.d };
-            } else {
-                pathis = { a: autoAssigned.a, b: autoAssigned.b, c: autoAssigned.c, d: "N/A" };
-            }
-        }
-
-        const entryData = {
-            placeId,
-            placeName: placeObj.name,
-            dayTime: `${placeObj.day} ${placeObj.time}`,
-            baalSatsang: isBaalSatsang,
-            date,
-            sk,
-            pathiA: pathis.a,
-            pathiB: pathis.b,
-            pathiC: pathis.c,
-            pathiD: pathis.d,
-            shabad: entry.shabad,
-            bani: entry.bani,
-            book: entry.book
-        };
-
-        tempSchedule.push(entryData);
-        setSchedule(tempSchedule);
-        return true;
-    };
-
     // Date config management
     const handleDateChange = (field, value) => {
         const newDates = { ...configData.dates, [field]: value };
@@ -372,83 +304,84 @@ function App() {
     };
 
     return (
-        <div className="container">
-            <Header 
-                onReleaseNotesClick={() => setReleaseNotesModalOpen(true)} 
-                theme={theme}
-                onToggleTheme={toggleTheme}
-            />
-            <Tabs activeTab={activeTab} onTabChange={handleTabChange} />
+        <>
+            <div className="container">
+                <Header 
+                    onReleaseNotesClick={() => setReleaseNotesModalOpen(true)} 
+                    theme={theme}
+                    onToggleTheme={toggleTheme}
+                />
+                <Tabs activeTab={activeTab} onTabChange={handleTabChange} />
 
-            <SetupTab
-                isActive={activeTab === 'SetupTab'}
-                places={places}
-                skList={skList}
-                pathiList={pathiList}
-                onAddPlace={handleAddPlace}
-                onRemovePlace={handleRemovePlace}
-                onAddSK={handleAddSK}
-                onRemoveSK={handleRemoveSK}
-                onAddPathi={handleAddPathi}
-                onRemovePathi={handleRemovePathi}
-                onClearAll={handleClearAll}
-                onGoToTab={handleGoToTab}
-            />
+                <SetupTab
+                    isActive={activeTab === 'SetupTab'}
+                    places={places}
+                    skList={skList}
+                    pathiList={pathiList}
+                    onAddPlace={handleAddPlace}
+                    onRemovePlace={handleRemovePlace}
+                    onAddSK={handleAddSK}
+                    onRemoveSK={handleRemoveSK}
+                    onAddPathi={handleAddPathi}
+                    onRemovePathi={handleRemovePathi}
+                    onClearAll={handleClearAll}
+                    onGoToTab={handleGoToTab}
+                />
 
-            <ScheduleTab
-                isActive={activeTab === 'ScheduleTab'}
-                places={places}
-                skList={skList}
-                pathiList={pathiList}
-                schedule={schedule}
-                onSaveEntry={handleSaveEntry}
-                onDeleteEntry={handleDeleteEntry}
-                onEditEntry={handleEditEntry}
-                editingIndex={editingIndex}
-                onGoToTab={handleGoToTab}
-                startMonth={startMonth}
-                startYear={startYear}
-                endMonth={endMonth}
-                endYear={endYear}
-                onShowToast={showToast}
-                onBulkUpload={handleBulkUpload}
-                onDateChange={handleDateChange}
-            />
+                <ScheduleTab
+                    isActive={activeTab === 'ScheduleTab'}
+                    places={places}
+                    skList={skList}
+                    pathiList={pathiList}
+                    schedule={schedule}
+                    onSaveEntry={handleSaveEntry}
+                    onDeleteEntry={handleDeleteEntry}
+                    onEditEntry={handleEditEntry}
+                    editingIndex={editingIndex}
+                    onGoToTab={handleGoToTab}
+                    startMonth={startMonth}
+                    startYear={startYear}
+                    endMonth={endMonth}
+                    endYear={endYear}
+                    onShowToast={showToast}
+                    onDateChange={handleDateChange}
+                />
 
-            <ViewTab
-                isActive={activeTab === 'ViewTab'}
-                places={places}
-                schedule={schedule}
-                startMonth={startMonth}
-                startYear={startYear}
-                endMonth={endMonth}
-                endYear={endYear}
-                onGoToTab={handleGoToTab}
-                onShowToast={showToast}
-            />
+                <ViewTab
+                    isActive={activeTab === 'ViewTab'}
+                    places={places}
+                    schedule={schedule}
+                    startMonth={startMonth}
+                    startYear={startYear}
+                    endMonth={endMonth}
+                    endYear={endYear}
+                    onGoToTab={handleGoToTab}
+                    onShowToast={showToast}
+                />
 
-            {/* Floating Feedback Button */}
-            <div className="fab-feedback">
-                <button onClick={() => setFeedbackModalOpen(true)}>
-                    <i className="fas fa-comment-dots"></i> Feedback
-                </button>
+                {/* Floating Feedback Button */}
+                <div className="fab-feedback">
+                    <button onClick={() => setFeedbackModalOpen(true)}>
+                        <i className="fas fa-comment-dots"></i> Feedback
+                    </button>
+                </div>
+
+                {/* Modals */}
+                <FeedbackModal
+                    isOpen={feedbackModalOpen}
+                    onClose={() => setFeedbackModalOpen(false)}
+                    onSendFeedback={() => showToast("Thank you for your feedback!")}
+                />
+
+                <ReleaseNotesModal
+                    isOpen={releaseNotesModalOpen}
+                    onClose={() => setReleaseNotesModalOpen(false)}
+                />
             </div>
 
-            {/* Modals */}
-            <FeedbackModal
-                isOpen={feedbackModalOpen}
-                onClose={() => setFeedbackModalOpen(false)}
-                onSendFeedback={() => showToast("Thank you for your feedback!")}
-            />
-
-            <ReleaseNotesModal
-                isOpen={releaseNotesModalOpen}
-                onClose={() => setReleaseNotesModalOpen(false)}
-            />
-
-            {/* Toast Container */}
+            {/* Toast Container - outside container for proper z-index */}
             <ToastContainer toasts={toasts} onRemove={removeToast} />
-        </div>
+        </>
     );
 }
 

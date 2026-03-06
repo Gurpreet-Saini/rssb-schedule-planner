@@ -17,7 +17,6 @@ const ScheduleTab = ({
     endMonth,
     endYear,
     onShowToast,
-    onBulkUpload,
     onDateChange
 }) => {
     const [selectedPlace, setSelectedPlace] = useState('');
@@ -26,10 +25,8 @@ const ScheduleTab = ({
     const [shabad, setShabad] = useState('');
     const [bani, setBani] = useState('');
     const [book, setBook] = useState('');
-    const [bulkText, setBulkText] = useState('');
     const [autoPathiText, setAutoPathiText] = useState('Select an SK to view assignment.');
     const [availableDates, setAvailableDates] = useState([]);
-    const [bulkMsg, setBulkMsg] = useState('');
 
     const updateDateList = useCallback(() => {
         if (selectedPlace) {
@@ -75,11 +72,13 @@ const ScheduleTab = ({
         if (!placeObj) return;
 
         let pathiCount = placeObj.baalSatsang ? 4 : 3;
-        if (value === 'VCD') pathiCount = 3; // always 3 slots for VCD (A is N/A, B,C,D)
+        if (value === 'VCD') pathiCount = placeObj.baalSatsang ? 3 : 2; // VCD: 3 if Baal (A=N/A, B,C,D), 2 if not (A=N/A, B,C, D=N/A)
 
         setAutoPathiText(
             value === 'VCD'
-                ? `VCD: Pathi A is N/A. ${pathiCount} Pathis auto-assigned (includes Pathi-D).`
+                ? placeObj.baalSatsang
+                    ? `VCD: Pathi A is N/A. ${pathiCount} Pathis auto-assigned (includes Pathi-D).`
+                    : `VCD: Pathi A is N/A. ${pathiCount} Pathis auto-assigned (Pathi-D N/A).`
                 : `${pathiCount} Pathis auto-assigned (Load Balanced).`
         );
     }, [selectedPlace, places]);
@@ -99,7 +98,7 @@ const ScheduleTab = ({
                 const placeObj = places.find(p => p.id === entry.placeId);
                 if (placeObj) {
                     let pathiCount = placeObj.baalSatsang ? 4 : 3;
-                    if (entry.sk === 'VCD') pathiCount = 3;
+                    if (entry.sk === 'VCD') pathiCount = placeObj.baalSatsang ? 3 : 2;
                     setAutoPathiText(
                         entry.sk === 'VCD'
                             ? `VCD: Pathi A is N/A. ${pathiCount} Pathis auto-assigned (includes Pathi-D).`
@@ -128,52 +127,43 @@ const ScheduleTab = ({
         const success = onSaveEntry(entry, editingIndex);
         if (!success) return;
 
+        // Auto-select next available date for the same place
+        if (selectedPlace) {
+            const placeObj = places.find(p => p.id === parseInt(selectedPlace));
+            if (placeObj) {
+                const allDates = getAvailableDates(placeObj, parseInt(startMonth), parseInt(startYear), parseInt(endMonth), parseInt(endYear), schedule);
+                const filtered = allDates.filter(d => {
+                    const isScheduled = schedule.some((e, idx) => {
+                        if (e.placeId === parseInt(selectedPlace) && e.date === d) {
+                            if (editingIndex > -1 && idx === editingIndex) return false; // keep date we're editing
+                            return true;
+                        }
+                        return false;
+                    });
+                    return !isScheduled;
+                });
+                if (filtered.length > 0) {
+                    // Find the next date after the current one
+                    const currentDateIndex = filtered.indexOf(selectedDate);
+                    if (currentDateIndex >= 0 && currentDateIndex < filtered.length - 1) {
+                        setSelectedDate(filtered[currentDateIndex + 1]);
+                    } else {
+                        setSelectedDate(filtered[0]); // or first available if current was last
+                    }
+                } else {
+                    setSelectedDate(''); // no more dates
+                }
+            }
+        } else {
+            setSelectedDate('');
+        }
+
         // keep place selected; clear other fields
-        // date list will refresh after schedule update
-        setSelectedDate('');
         setSelectedSK('');
         setShabad('');
         setBani('');
         setBook('');
         setAutoPathiText('Select an SK to view assignment.');
-    };
-
-    const handleBulkUpload = () => {
-        if (!bulkText) return;
-
-        let lines = bulkText.trim().split('\n');
-        let count = 0;
-        let errors = [];
-
-        lines.forEach((line, idx) => {
-            let parts = line.split(',').map(p => p.trim());
-            if (parts.length >= 3) {
-                let dateStr = parts[0];
-                let placeName = parts[1].toUpperCase();
-                let skName = parts[2].toUpperCase().replace(/^VCD\s+|\s+VCD$/gi, '').trim() || "VCD";
-                let placeObj = places.find(p => p.name.includes(placeName) || placeName.includes(p.name));
-
-                if (placeObj) {
-                    if (onBulkUpload({
-                        placeId: placeObj.id,
-                        date: dateStr,
-                        sk: skName,
-                        shabad: parts[3] || '',
-                        bani: parts[4] || '',
-                        book: parts[5] || ''
-                    })) {
-                        count++;
-                    } else {
-                        errors.push(`L${idx + 1}: Conflict`);
-                    }
-                } else {
-                    errors.push(`L${idx + 1}: Place?`);
-                }
-            }
-        });
-
-        setBulkMsg(`Processed ${count}. ${errors.join(' | ')}`);
-        setBulkText('');
     };
 
     const sortedSK = [...skList].sort((a, b) => {
@@ -283,22 +273,6 @@ const ScheduleTab = ({
                 <h3><i className="fas fa-list-ul"></i> Recent Entries</h3>
                 <SchedulePreviewTable schedule={schedule} onEdit={onEditEntry} onDelete={onDeleteEntry} />
             </div>
-
-            <br /><hr style={{ border: '0', borderTop: '1px solid var(--border)' }} /><br />
-
-            <h2><i className="fas fa-upload"></i> Bulk Upload</h2>
-            <div className="form-row bulk-section">
-                <div className="form-group" style={{ flex: 2 }}>
-                    <label>Paste CSV Data</label>
-                    <textarea value={bulkText} onChange={(e) => setBulkText(e.target.value)} placeholder="Date, Place, SK, Shabad, Bani, Book"></textarea>
-                </div>
-                <div className="form-group" style={{ flex: 1, display: 'flex', alignItems: 'flex-end' }}>
-                    <button className="btn-warning" style={{ width: '100%', color: 'white' }} onClick={handleBulkUpload}>
-                        <i className="fas fa-paper-plane"></i> Process
-                    </button>
-                </div>
-            </div>
-            {bulkMsg && <div className="error-msg" style={{ color: 'var(--primary)' }}>{bulkMsg}</div>}
 
             <div className="nav-actions">
                 <button className="btn-nav back" onClick={() => onGoToTab('SetupTab')}>

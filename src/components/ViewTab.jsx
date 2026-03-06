@@ -6,6 +6,10 @@ const ViewTab = ({ isActive, places, schedule, startMonth, startYear, endMonth, 
         total: 0,
         skCounts: {},
         pathiCounts: {},
+        pathiACounts: {},
+        pathiBCounts: {},
+        pathiCCounts: {},
+        pathiDCounts: {},
         vacantDates: []
     });
 
@@ -26,11 +30,27 @@ const ViewTab = ({ isActive, places, schedule, startMonth, startYear, endMonth, 
 
         // Pathi Counts
         const pathiCounts = {};
+        const pathiACounts = {};
+        const pathiBCounts = {};
+        const pathiCCounts = {};
+        const pathiDCounts = {};
         schedule.forEach(e => {
-            if (e.pathiA !== "N/A") pathiCounts[e.pathiA] = (pathiCounts[e.pathiA] || 0) + 1;
-            if (e.pathiB !== "N/A") pathiCounts[e.pathiB] = (pathiCounts[e.pathiB] || 0) + 1;
-            if (e.pathiC !== "N/A") pathiCounts[e.pathiC] = (pathiCounts[e.pathiC] || 0) + 1;
-            if (e.pathiD && e.pathiD !== "N/A") pathiCounts[e.pathiD] = (pathiCounts[e.pathiD] || 0) + 1;
+            if (e.pathiA !== "N/A") {
+                pathiCounts[e.pathiA] = (pathiCounts[e.pathiA] || 0) + 1;
+                pathiACounts[e.pathiA] = (pathiACounts[e.pathiA] || 0) + 1;
+            }
+            if (e.pathiB !== "N/A") {
+                pathiCounts[e.pathiB] = (pathiCounts[e.pathiB] || 0) + 1;
+                pathiBCounts[e.pathiB] = (pathiBCounts[e.pathiB] || 0) + 1;
+            }
+            if (e.pathiC !== "N/A") {
+                pathiCounts[e.pathiC] = (pathiCounts[e.pathiC] || 0) + 1;
+                pathiCCounts[e.pathiC] = (pathiCCounts[e.pathiC] || 0) + 1;
+            }
+            if (e.pathiD && e.pathiD !== "N/A") {
+                pathiCounts[e.pathiD] = (pathiCounts[e.pathiD] || 0) + 1;
+                pathiDCounts[e.pathiD] = (pathiDCounts[e.pathiD] || 0) + 1;
+            }
         });
 
         // Vacant Dates
@@ -40,6 +60,10 @@ const ViewTab = ({ isActive, places, schedule, startMonth, startYear, endMonth, 
             total,
             skCounts,
             pathiCounts,
+            pathiACounts,
+            pathiBCounts,
+            pathiCCounts,
+            pathiDCounts,
             vacantDates
         });
     };
@@ -104,12 +128,18 @@ const ViewTab = ({ isActive, places, schedule, startMonth, startYear, endMonth, 
 
     const maxSK = Math.max(...Object.values(metrics.skCounts), 1);
     const maxPathi = Math.max(...Object.values(metrics.pathiCounts), 1);
+    const maxPathiA = Math.max(...Object.values(metrics.pathiACounts), 1);
+    const maxPathiB = Math.max(...Object.values(metrics.pathiBCounts), 1);
+    const maxPathiC = Math.max(...Object.values(metrics.pathiCCounts), 1);
+    const maxPathiD = Math.max(...Object.values(metrics.pathiDCounts), 1);
 
     return (
         <div id="ViewTab" className={`tab-content ${isActive ? 'active' : ''}`}>
-            <h2 style={{ margin: '0', border: 'none' }}>
-                <i className="fas fa-chart-pie"></i> Analytics Dashboard
-            </h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h2 style={{ margin: '0', border: 'none' }}>
+                    <i className="fas fa-chart-pie"></i> Analytics Dashboard
+                </h2>
+            </div>
 
             <div className="metrics-grid">
                 <div className="metric-card blue">
@@ -154,7 +184,7 @@ const ViewTab = ({ isActive, places, schedule, startMonth, startYear, endMonth, 
                 <div className="metric-card amber">
                     <div className="metric-header">
                         <div className="metric-title">
-                            <i className="fas fa-users-cog"></i> Pathi Rotation
+                            <i className="fas fa-users-cog"></i> All Pathis Rotation
                         </div>
                     </div>
                     <div className="visual-list">
@@ -175,6 +205,138 @@ const ViewTab = ({ isActive, places, schedule, startMonth, startYear, endMonth, 
                                                 style={{
                                                     width: `${(count / maxPathi) * 100}%`,
                                                     background: 'linear-gradient(90deg, #f59e0b, #fbbf24)'
+                                                }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                ))
+                        )}
+                    </div>
+                </div>
+
+                <div className="metric-card amber">
+                    <div className="metric-header">
+                        <div className="metric-title">
+                            <i className="fas fa-user-cog"></i> Pathi-A Rotation
+                        </div>
+                    </div>
+                    <div className="visual-list">
+                        {Object.entries(metrics.pathiACounts).length === 0 ? (
+                            <div>None</div>
+                        ) : (
+                            Object.entries(metrics.pathiACounts)
+                                .sort((a, b) => b[1] - a[1])
+                                .map(([name, count]) => (
+                                    <div key={name} className="visual-item">
+                                        <div className="visual-item-header">
+                                            <span className="visual-item-name">{name}</span>
+                                            <span className="visual-item-val">{count}</span>
+                                        </div>
+                                        <div className="progress-bg">
+                                            <div 
+                                                className="progress-fill" 
+                                                style={{
+                                                    width: `${(count / maxPathiA) * 100}%`,
+                                                    background: 'linear-gradient(90deg, #f59e0b, #fbbf24)'
+                                                }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                ))
+                        )}
+                    </div>
+                </div>
+
+                <div className="metric-card orange">
+                    <div className="metric-header">
+                        <div className="metric-title">
+                            <i className="fas fa-user-cog"></i> Pathi-B Rotation
+                        </div>
+                    </div>
+                    <div className="visual-list">
+                        {Object.entries(metrics.pathiBCounts).length === 0 ? (
+                            <div>None</div>
+                        ) : (
+                            Object.entries(metrics.pathiBCounts)
+                                .sort((a, b) => b[1] - a[1])
+                                .map(([name, count]) => (
+                                    <div key={name} className="visual-item">
+                                        <div className="visual-item-header">
+                                            <span className="visual-item-name">{name}</span>
+                                            <span className="visual-item-val">{count}</span>
+                                        </div>
+                                        <div className="progress-bg">
+                                            <div 
+                                                className="progress-fill" 
+                                                style={{
+                                                    width: `${(count / maxPathiB) * 100}%`,
+                                                    background: 'linear-gradient(90deg, #f97316, #fb923c)'
+                                                }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                ))
+                        )}
+                    </div>
+                </div>
+
+                <div className="metric-card yellow">
+                    <div className="metric-header">
+                        <div className="metric-title">
+                            <i className="fas fa-user-cog"></i> Pathi-C Rotation
+                        </div>
+                    </div>
+                    <div className="visual-list">
+                        {Object.entries(metrics.pathiCCounts).length === 0 ? (
+                            <div>None</div>
+                        ) : (
+                            Object.entries(metrics.pathiCCounts)
+                                .sort((a, b) => b[1] - a[1])
+                                .map(([name, count]) => (
+                                    <div key={name} className="visual-item">
+                                        <div className="visual-item-header">
+                                            <span className="visual-item-name">{name}</span>
+                                            <span className="visual-item-val">{count}</span>
+                                        </div>
+                                        <div className="progress-bg">
+                                            <div 
+                                                className="progress-fill" 
+                                                style={{
+                                                    width: `${(count / maxPathiC) * 100}%`,
+                                                    background: 'linear-gradient(90deg, #eab308, #facc15)'
+                                                }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                ))
+                        )}
+                    </div>
+                </div>
+
+                <div className="metric-card gold">
+                    <div className="metric-header">
+                        <div className="metric-title">
+                            <i className="fas fa-user-cog"></i> Pathi-D Rotation
+                        </div>
+                    </div>
+                    <div className="visual-list">
+                        {Object.entries(metrics.pathiDCounts).length === 0 ? (
+                            <div>None</div>
+                        ) : (
+                            Object.entries(metrics.pathiDCounts)
+                                .sort((a, b) => b[1] - a[1])
+                                .map(([name, count]) => (
+                                    <div key={name} className="visual-item">
+                                        <div className="visual-item-header">
+                                            <span className="visual-item-name">{name}</span>
+                                            <span className="visual-item-val">{count}</span>
+                                        </div>
+                                        <div className="progress-bg">
+                                            <div 
+                                                className="progress-fill" 
+                                                style={{
+                                                    width: `${(count / maxPathiD) * 100}%`,
+                                                    background: 'linear-gradient(90deg, #d97706, #f59e0b)'
                                                 }}
                                             ></div>
                                         </div>

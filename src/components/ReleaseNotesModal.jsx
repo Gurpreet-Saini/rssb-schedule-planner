@@ -27,7 +27,19 @@ const ReleaseNotesModal = ({ isOpen, onClose }) => {
                 <div style={{ lineHeight: 1.6, color: 'var(--text-secondary)' }}>
                     <div style={{ marginBottom: '20px', borderBottom: '1px solid var(--border)', paddingBottom: '15px' }}>
                         <h3 style={{ margin: '0 0 10px 0', color: 'var(--primary-light)', fontSize: '1.1rem' }}>
-                            Version 2.4 (Current)
+                            Version 2.5 (Current)
+                        </h3>
+                        <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                            <li><strong>Enhanced Analytics Dashboard</strong>: Added separate metrics for each Pathi slot (A, B, C, D) with color-coded visualization for better tracking.</li>
+                            <li><strong>Improved UI/UX</strong>: Enhanced metric card visuals with improved styling and color coding for distribution fairness.</li>
+                            <li><strong>Toast Notifications</strong>: Fixed notification positioning to bottom-right corner with smooth animations and better visibility.</li>
+                            <li><strong>Code Cleanup</strong>: Removed bulk upload functionality and reshuffle feature for cleaner, more focused interface.</li>
+                            <li><strong>Performance</strong>: Optimized bundle size and improved overall application performance.</li>
+                        </ul>
+                    </div>
+                    <div style={{ marginBottom: '20px', borderBottom: '1px solid var(--border)', paddingBottom: '15px' }}>
+                        <h3 style={{ margin: '0 0 10px 0', color: 'var(--primary-light)', fontSize: '1.1rem' }}>
+                            Version 2.4
                         </h3>
                         <ul style={{ margin: 0, paddingLeft: '20px' }}>
                             <li><strong>Dark Mode</strong>: Added dark theme support with toggle button in header. Theme preference is saved.</li>

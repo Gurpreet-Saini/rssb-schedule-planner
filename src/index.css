@@ -532,6 +532,9 @@ th {
 .metric-card.blue::before { background: linear-gradient(90deg, var(--primary-dark), var(--primary-light)); }
 .metric-card.sky::before { background: linear-gradient(90deg, var(--secondary), #06b6d4); }
 .metric-card.amber::before { background: linear-gradient(90deg, var(--accent), #fbbf24); }
+.metric-card.orange::before { background: linear-gradient(90deg, #f97316, #fb923c); }
+.metric-card.yellow::before { background: linear-gradient(90deg, #eab308, #facc15); }
+.metric-card.gold::before { background: linear-gradient(90deg, #d97706, #f59e0b); }
 .metric-card.red::before { background: linear-gradient(90deg, var(--danger), #f87171); }
 
 .metric-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -616,11 +619,11 @@ th {
 /* --- TOAST NOTIFICATION --- */
 #toast-container {
     position: fixed;
-    top: 30px;
+    bottom: 30px;
     right: 30px;
-    z-index: 9999;
+    z-index: 10000;
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     gap: 12px;
 }
 
@@ -648,12 +651,12 @@ th {
 .toast i { font-size: 1.3rem; }
 
 @keyframes toastSlideIn {
-    from { transform: translateX(100%) scale(0.8); opacity: 0; }
-    to { transform: translateX(0) scale(1); opacity: 1; }
+    from { transform: translateY(100%) scale(0.8); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
 }
 @keyframes toastSlideOut {
-    from { transform: translateX(0) scale(1); opacity: 1; }
-    to { transform: translateX(100%) scale(0.8); opacity: 0; }
+    from { transform: translateY(0) scale(1); opacity: 1; }
+    to { transform: translateY(100%) scale(0.8); opacity: 0; }
 }
 
 /* Floating Feedback Button */
