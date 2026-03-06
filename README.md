@@ -1,4 +1,4 @@
-# Radha Soami Satsang Beas - Schedule Manager (React Edition)
+# Radha Soami Satsang Beas - Schedule Manager (React Edition).
 
 A modern React-based application for managing Satsang schedules, assigning Satsang Kartas and Pathis, and tracking detailed analytics.
 
